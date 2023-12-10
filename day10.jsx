@@ -1,4 +1,4 @@
-// url
+// https://jsfiddle.net/mrcrawfo/frpbj4n0/30/
 
 const input1 = [
 	'.......',
@@ -184,6 +184,77 @@ const input4 = [
   '......................',
 ];
 
+const input5 = [
+  '......................',
+  '.FF7FSF7F7F7F7F7F---7.',
+  '.L|LJ||||||||||||F--J.',
+  '.FL-7LJLJ||||||LJL-77.',
+  '.F--JF--7||LJLJ7F7FJ-.',
+  '.L---JF-JLJ.||-FJLJJ7.',
+  '.|F|F-JF---7F7-L7L|7|.',
+  '.|FFJF7L7F-JF7|JL---7.',
+  '.7-L-JL7||F7|L7F-7F7|.',
+  '.L.L7LFJ|||||FJL7||LJ.',
+  '.L7JLJL-JLJLJL--JLJ.L.',
+  '......................',
+];
+
+const checkUp = (input, r, c) => {
+  let node = input[r - 1][c];
+  switch (node) {
+    case '|':
+      return 'up';
+    case '7':
+      return 'left';
+    case 'F':
+      return 'right';
+    default:
+      return null;
+  }
+};
+
+const checkRight = (input, r, c) => {
+  let node = input[r][c + 1];
+  switch (node) {
+    case '-':
+      return 'right';
+    case '7':
+      return 'down';
+    case 'J':
+      return 'up';
+    default:
+      return null;
+  }
+};
+
+const checkDown = (input, r, c) => {
+  let node = input[r + 1][c];
+  switch (node) {
+    case '|':
+      return 'down';
+    case 'J':
+      return 'left';
+    case 'L':
+      return 'right';
+    default:
+      return null;
+  }
+};
+
+const checkLeft = (input, r, c) => {
+  let node = input[r][c - 1];
+  switch (node) {
+    case '-':
+      return 'left';
+    case 'L':
+      return 'up';
+    case 'F':
+      return 'down';
+    default:
+      return null;
+  }
+};
+
 const findLoop = (input) => {
 	let startR, startC;
 	for (let r = 0; r < input.length; r++) {
@@ -195,62 +266,6 @@ const findLoop = (input) => {
     }
   }
   
-  const checkUp = (r, c) => {
-  	let node = input[r - 1][c];
-    switch (node) {
-    	case '|':
-        return 'up';
-      case '7':
-        return 'left';
-      case 'F':
-        return 'right';
-      default:
-        return null;
-    }
-  };
-  
-  const checkRight = (r, c) => {
-  	let node = input[r][c + 1];
-    switch (node) {
-    	case '-':
-        return 'right';
-      case '7':
-        return 'down';
-      case 'J':
-        return 'up';
-      default:
-        return null;
-    }
-  };
-  
-  const checkDown = (r, c) => {
-  	let node = input[r + 1][c];
-    switch (node) {
-    	case '|':
-        return 'down';
-      case 'J':
-        return 'left';
-      case 'L':
-        return 'right';
-      default:
-        return null;
-    }
-  };
-  
-  const checkLeft = (r, c) => {
-  	let node = input[r][c - 1];
-    switch (node) {
-    	case '-':
-        return 'left';
-      case 'L':
-        return 'up';
-      case 'F':
-        return 'down';
-      default:
-        return null;
-    }
-  };
-  
   let loop = [{ node: 'S', r: startR, c: startC }];
   let loopClosed = false;
   let currentR = startR;
@@ -259,25 +274,25 @@ const findLoop = (input) => {
   let nextR, nextC;
   
   let nextDirection;
-  let ndUp = (checkUp(startR, startC));
+  let ndUp = (checkUp(input, startR, startC));
   if (ndUp) {
   	currentR = startR - 1;
     currentC = startC;
     nextDirection = ndUp;
   }
-  let ndRight = (checkRight(startR, startC));
+  let ndRight = (checkRight(input, startR, startC));
   if (!nextDirection && ndRight) {
   	currentR = startR;
     currentC = startC + 1;
     nextDirection = ndRight;
   }
-  let ndDown = (checkDown(startR, startC));
+  let ndDown = (checkDown(input, startR, startC));
   if (!nextDirection && ndDown) {
   	currentR = startR + 1;
     currentC = startC;
     nextDirection = ndDown;
   }
-  let ndLeft = (checkLeft(startR, startC));
+  let ndLeft = (checkLeft(input, startR, startC));
   if (!nextDirection && ndLeft) {
   	currentR = startR;
     currentC = startC - 1;
@@ -287,19 +302,19 @@ const findLoop = (input) => {
   if (nextDirection === 'up') {
   	nextR = currentR - 1;
     nextC = currentC;
-    nextDirection = checkUp(currentR, currentC);
+    nextDirection = checkUp(input, currentR, currentC);
   } else if (nextDirection === 'right') {
     nextR = currentR;
   	nextC = currentC + 1;
-    nextDirection = checkRight(currentR, currentC);
+    nextDirection = checkRight(input, currentR, currentC);
   } else if (nextDirection === 'down') {
   	nextR = currentR + 1;
     nextC = currentC;
-    nextDirection = checkDown(currentR, currentC);
+    nextDirection = checkDown(input, currentR, currentC);
   } else if (nextDirection === 'left') {
     nextR = currentR;
   	nextC = currentC - 1;
-    nextDirection = checkLeft(currentR, currentC);
+    nextDirection = checkLeft(input, currentR, currentC);
   }
   
   while (!loopClosed) {
@@ -308,25 +323,25 @@ const findLoop = (input) => {
     currentC = nextC;
   	switch (nextDirection) {
     	case 'up':
-      	nextDirection = checkUp(currentR, currentC);
+      	nextDirection = checkUp(input, currentR, currentC);
         nextR = currentR - 1;
       	break;
     	case 'right':
-      	nextDirection = checkRight(currentR, currentC);
+      	nextDirection = checkRight(input, currentR, currentC);
         nextC = currentC + 1;
       	break;
     	case 'down':
-      	nextDirection = checkDown(currentR, currentC);
+      	nextDirection = checkDown(input, currentR, currentC);
         nextR = currentR + 1
       	break;
     	case 'left':
-      	nextDirection = checkLeft(currentR, currentC);
+      	nextDirection = checkLeft(input, currentR, currentC);
         nextC = currentC - 1
       	break;
     }
     
     if (input[nextR][nextC] === 'S') {
-    	loop.push({ node: input[nextR][nextC], r: nextR, c: nextC });
+    	loop.push({ node: input[currentR][currentC], r: currentR, c: currentC });
     	loopClosed = true;
     }
   }
@@ -348,19 +363,35 @@ console.log(test1(input2));
 
 const countUp = (input, r, c) => {
 	let count = 0;
-  let line = false;
+  let lineLeft = false;
+  let lineRight = false;
 	for (let row = r; row > 0; row--) {
   	let node = input[row][c];
   	if (node === '-') {
     	count++;
     }
-    if (line) {
-    	if (node === 'F' || node === '7') {
-      	line = false;
-        //count++;
+    if (lineLeft || lineRight) {
+    	if (node === 'F') {
+      	if (lineLeft) {
+        	count++
+        }
+      	lineLeft = false;
+        lineRight = false;
       }
-    } else if (node === 'L' || node === 'J' || node === '|') {
-    	line = true;
+      if (node === '7') {
+        if (lineRight) {
+        	count++
+        }
+      	lineLeft = false;
+        lineRight = false;
+      }
+    } else if (node === 'L' || node === 'J') {
+    	if (node === 'J') {
+      	lineLeft = true;
+      }
+      if (node === 'L') {
+      	lineRight = true;
+      }
     }
   }
 	return count;
@@ -368,19 +399,35 @@ const countUp = (input, r, c) => {
 
 const countRight = (input, r, c) => {  
   let count = 0;
-  let line = false;
+  let lineUp = false;
+  let lineDown = false;
 	for (let col = c; col < input[r].length; col++) {
   	let node = input[r][col];
   	if (node === '|') {
     	count++;
     }
-    if (line) {
-    	if (node === '7' || node === 'J') {
-      	line = false;
-        //count++;
+    if (lineUp || lineDown) {
+    	if (node === '7') {
+      	if (lineUp) {
+        	count++
+        }
+      	lineUp = false;
+        lineDown = false;
       }
-    } else if (node === 'F' || node === 'L' || node === '-') {
-    	line = true;
+      if (node === 'J') {
+        if (lineDown) {
+        	count++
+        }
+      	lineUp = false;
+        lineDown = false;
+      }
+    } else if (node === 'F' || node === 'L') {
+      if (node === 'L') {
+      	lineUp = true;
+      }
+    	if (node === 'F') {
+      	lineDown = true;
+      }
     }
   }
 	return count;
@@ -388,19 +435,35 @@ const countRight = (input, r, c) => {
 
 const countDown = (input, r, c) => {  
   let count = 0;
-  let line = false;
+  let lineLeft = false;
+  let lineRight = false;
 	for (let row = r; row < input.length; row++) {
   	let node = input[row][c];
   	if (node === '-') {
     	count++;
     }
-    if (line) {
-    	if (node === 'L' || node === 'J') {
-      	line = false;
-        //count++;
+    if (lineLeft || lineRight) {
+    	if (node === 'L') {
+      	if (lineLeft) {
+        	count++
+        }
+      	lineLeft = false;
+        lineRight = false;
       }
-    } else if (node === 'F' || node === '7' || node === '|') {
-    	line = true;
+      if (node === 'J') {
+        if (lineRight) {
+        	count++
+        }
+      	lineLeft = false;
+        lineRight = false;
+      }
+    } else if (node === 'F' || node === '7') {
+    	if (node === '7') {
+      	lineLeft = true;
+      }
+      if (node === 'F') {
+      	lineRight = true;
+      }
     }
   }
 	return count;
@@ -408,19 +471,35 @@ const countDown = (input, r, c) => {
 
 const countLeft = (input, r, c) => {  
   let count = 0;
-  let line = false;
+  let lineUp = false;
+  let lineDown = false;
 	for (let col = c; col > 0; col--) {
   	let node = input[r][col];
   	if (node === '|') {
     	count++;
     }
-    if (line) {
-    	if (node === 'F' || node === 'L') {
-      	line = false;
-        //count++;
+    if (lineUp || lineDown) {
+    	if (node === 'F') {
+      	if (lineUp) {
+        	count++
+        }
+      	lineUp = false;
+        lineDown = false;
       }
-    } else if (node === '7' || node === 'J' || node === '-') {
-    	line = true;
+      if (node === 'L') {
+        if (lineDown) {
+        	count++
+        }
+      	lineUp = false;
+        lineDown = false;
+      }
+    } else if (node === '7' || node === 'J') {
+      if (node === '7') {
+      	lineDown = true;
+      }
+    	if (node === 'J') {
+      	lineUp = true;
+      }
     }
   }
 	return count;
@@ -428,6 +507,16 @@ const countLeft = (input, r, c) => {
 
 
 const test2 = (input) => {
+	let startR, startC;
+	for (let r = 0; r < input.length; r++) {
+  	let sIndex = input[r].indexOf('S');
+    if (sIndex >= 0) {
+    	startR = r;
+      startC = sIndex;
+      break;
+    }
+  }
+  
 	let loop = findLoop(input);
   
   let grid = []
@@ -436,7 +525,27 @@ const test2 = (input) => {
   	for (let c = 0; c < input[r].length; c++) {
     	let node = loop.filter((node) => node.r === r && node.c === c)[0];
     	if (node) {
-      	row += node.node;
+      	if (node.node === 'S') {
+        	let ndUp = (checkUp(input, startR, startC));
+          let ndRight = (checkRight(input, startR, startC));
+          let ndDown = (checkDown(input, startR, startC));
+          let ndLeft = (checkLeft(input, startR, startC));
+          
+          if (ndUp && ndRight) {
+          	row += 'L';
+          }
+          if (ndUp && ndLeft) {
+          	row += 'J';
+          }
+          if (ndDown && ndRight) {
+          	row += 'F';
+          }
+          if (ndDown && ndLeft) {
+          	row += '7';
+          }
+        } else {
+      		row += node.node;
+        }
       } else {
       	row += '.';
       }
@@ -444,19 +553,14 @@ const test2 = (input) => {
     grid.push(row);
   }
   
-  /* for (let row of grid) {
-    console.log(row);
-  } */
-  
   let total = 0;
-  for (let r = 0; r < input.length; r++) {
-  	for (let c = 0; c < input[r].length; c++) {
-    	if (input[r][c] === '.') {
-      	let up = countUp(input, r, c);
-        let right = countRight(input, r, c);
-        let down = countDown(input, r, c);
-        let left = countLeft(input, r, c);
-        console.log(r, c, up, right, down, left);
+  for (let r = 0; r < grid.length; r++) {
+  	for (let c = 0; c < grid[r].length; c++) {
+    	if (grid[r][c] === '.') {
+      	let up = countUp(grid, r, c);
+        let right = countRight(grid, r, c);
+        let down = countDown(grid, r, c);
+        let left = countLeft(grid, r, c);
         if (up % 2 === 1 && right % 2 === 1 && down % 2 === 1 && left % 2 === 1) {
         	total++;
         }
@@ -473,8 +577,10 @@ console.log(test2(input3));
 console.log('Answer - Part 2 - Input 4');
 console.log(test2(input4));
 // 8
-//console.log('Answer - Part 2 - Input 2');
-//console.log(test2(input2));
-// 
-
+console.log('Answer - Part 2 - Input 5');
+console.log(test2(input5));
+// 10
+console.log('Answer - Part 2 - Input 2');
+console.log(test2(input2));
+// 349
 
