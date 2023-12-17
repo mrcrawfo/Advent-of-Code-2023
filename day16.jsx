@@ -1,5 +1,3 @@
-// url
-
 const input1 = [
   '.|...S....',
   '|.-.S.....',
@@ -272,7 +270,7 @@ const test1 = (input) => {
 // 46
 //console.log('Answer - Part 1 - Input 2')
 //console.log(test1(input2));
-// 
+// 7798
 
 const test2 = (input) => {
   let total = 0;
@@ -298,4 +296,4 @@ console.log(test2(input1));
 // 51
 console.log('Answer - Part 2 - Input 2');
 console.log(test2(input2));
-// 
+// 8026
