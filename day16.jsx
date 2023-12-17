@@ -130,11 +130,7 @@ const updateCharacter = (str, index, newChar) => {
   return (str.substring(0, index) + newChar + str.substring(index + 1));
 };
 
-const test1 = (input) => {
-  let startR = 0;
-  let startC = -1;
-  let startD = 'right';
-
+const testGrid = (input, startR, startC, startD, maxIterations) => {
   let lightGrid = [];
   for (let r = 0; r < input.length; r++) {
     let row = input[r];
@@ -152,9 +148,9 @@ const test1 = (input) => {
   let activeBeams = [{ r: startR, c: startC, direction: startD }];
   let iter = 0;
 
-  while (activeBeams.length > 0 && iter < 1000) {
+  while (activeBeams.length > 0 && iter < maxIterations) {
     iter++;
-    console.log(iter, activeBeams.length);
+    //console.log(iter, activeBeams.length);
     let nextBeams = [];
     for (let beam of activeBeams) {
       switch (beam.direction) {
@@ -257,7 +253,6 @@ const test1 = (input) => {
 
   let total = 0;
   for (let row of lightGrid) {
-    console.log(row);
     for (let c = 0; c < row.length; c++) {
       if (row[c] === '#') {
         total++;
@@ -266,7 +261,11 @@ const test1 = (input) => {
   }
 
   return total;
-}
+};
+
+const test1 = (input) => {
+  return testGrid(input, 0, -1, 'right', 1000);
+};
 
 //console.log('Answer - Part 1 - Input 1');
 //console.log(test1(input1));
@@ -276,12 +275,27 @@ const test1 = (input) => {
 // 
 
 const test2 = (input) => {
+  let total = 0;
 
-}
+  for (let r = 0; r < input.length; r++) {
+    let checkRight = testGrid(input, r, -1, 'right', 1000);
+    let checkLeft = testGrid(input, r, input[0].length, 'left', 1000);
+    console.log('r', r, 'right', checkRight, 'left', checkLeft);
+    total = Math.max(total, checkRight, checkLeft);
+  }
+  for (let c = 0; c < input[0].length; c++) {
+    let checkDown = testGrid(input, -1, c, 'down', 1000);
+    let checkUp = testGrid(input, input.length, c, 'up', 1000);
+    console.log('c', c, 'down', checkDown, 'up', checkUp);
+    total = Math.max(total, checkDown, checkUp);
+  }
 
-//console.log('Answer - Part 2 - Input 1');
-//console.log(test2(input1));
-// 
-//console.log('Answer - Part 2 - Input 2');
-//console.log(test2(input2));
+  return total;
+};
+
+console.log('Answer - Part 2 - Input 1');
+console.log(test2(input1));
+// 51
+console.log('Answer - Part 2 - Input 2');
+console.log(test2(input2));
 // 
