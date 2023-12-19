@@ -665,9 +665,9 @@ const input2 = [
 const makeGrid = (gridSize) => {
 	let grid = [];
 	for (let r = 0; r < gridSize; r++) {
-  	let row = '';
+    let row = '';
     for (let c = 0; c < gridSize; c++) {
-    	row += '.';
+      row += '.';
     }
     grid.push(row);
   }
@@ -678,74 +678,221 @@ const updateCharacter = (str, index, newChar) => {
   return (str.substring(0, index) + newChar + str.substring(index + 1));
 };
 
+const checkUp = (grid, r, c) => {
+  if (r > 1) {
+    if (grid[r - 1][c] === '.') {
+      grid[r - 1] = updateCharacter(grid[r - 1], c, '#');
+      grid = checkUp(grid, r - 1, c);
+      grid = checkLeft(grid, r - 1, c);
+      grid = checkRight(grid, r - 1, c);
+      return grid;
+    }
+  }
+  return grid;
+};
+
+const checkRight = (grid, r, c) => {
+  if (c < grid[r].length - 1) {
+    if (grid[r][c + 1] === '.') {
+      grid[r] = updateCharacter(grid[r], c + 1, '#');
+      grid = checkUp(grid, r, c + 1);
+      grid = checkRight(grid, r, c + 1);
+      grid = checkDown(grid, r, c + 1);
+      return grid;
+    }
+  }
+  return grid;
+};
+
+const checkDown = (grid, r, c) => {
+  if (r < grid.length - 1) {
+    if (grid[r + 1][c] === '.') {
+      grid[r + 1] = updateCharacter(grid[r + 1], c, '#');
+      grid = checkRight(grid, r + 1, c);
+      grid = checkLeft(grid, r + 1, c);
+      grid = checkDown(grid, r + 1, c);
+      return grid;
+    }
+  }
+  return grid;
+};
+
+const checkLeft = (grid, r, c) => {
+  if (c > 1) {
+    if (grid[r][c - 1] === '.') {
+      grid[r] = updateCharacter(grid[r], c - 1, '#');
+      grid = checkUp(grid, r, c - 1);
+      grid = checkLeft(grid, r, c - 1);
+      grid = checkDown(grid, r, c - 1);
+      return grid;
+    }
+  }
+  return grid;
+};
+
 const test1 = (input) => {
-	let grid = makeGrid(10);
-  let startR = 0;
-  let startC = 0;
-  let currentR = 0;
-  let currentC = 0;
+	let grid = makeGrid(1500);
+  let startR = 1000;
+  let startC = 1000;
+  let currentR = 1000;
+  let currentC = 1000;
   console.log(grid);
   grid[startR] = updateCharacter(grid[startR], startC, '#');
   
+  let minR = 9999;
+  let minC = 9999;
+  let maxR = 0;
+  let maxC = 0;
   for (let step of input) {
-  	let [direction, distance, color] = step.split(' ');
-    switch (direction) {
-    	case 'U':
-      	for (let s = 0; s < distance; s++) {
-        	currentR--;
+    let [direction, distance, color] = step.split(' ');
+      switch (direction) {
+        case 'U':
+        for (let s = 0; s < distance; s++) {
+          currentR--;
+          minR = Math.min(minR, currentR);
           grid[currentR] = updateCharacter(grid[currentR], currentC, '#');
         }
         break;
-    	case 'R':
-      	for (let s = 0; s < distance; s++) {
-        	currentC++;
+      case 'R':
+        for (let s = 0; s < distance; s++) {
+          currentC++;
+          maxC = Math.max(maxC, currentC);
           grid[currentR] = updateCharacter(grid[currentR], currentC, '#');
         }
         break;
-    	case 'D':
-      	for (let s = 0; s < distance; s++) {
-        	currentR++;
+      case 'D':
+        for (let s = 0; s < distance; s++) {
+          currentR++;
+          maxR = Math.max(maxR, currentR);
           grid[currentR] = updateCharacter(grid[currentR], currentC, '#');
         }
         break;
-    	case 'L':
-      	for (let s = 0; s < distance; s++) {
-        	currentC--;
+      case 'L':
+          for (let s = 0; s < distance; s++) {
+          currentC--;
+          minC = Math.min(minC, currentC);
           grid[currentR] = updateCharacter(grid[currentR], currentC, '#');
         }
         break;
     }
   }
-  
+  console.log(minR, minC, maxR, maxC);
+
+  let inboundsR;
+  let inboundsC;
   for (let r = 0; r < grid.length; r++) {
-  	let row = grid[r];
-    for (let c = 0; c < row.length; c++) {
-    	if (grid[r][c] === '.') {
-      	// floodfill
-        if (inbounds) {
-          row = updateCharacter(row, c, '#');
+    let row = grid[r];
+    let lastCharacter;
+    if (!inboundsR && !inboundsC) {
+      for (let c = 0; c < row.length; c++) {
+        if (grid[r][c] === '#') {
+          if (lastCharacter === '#') {
+            break;
+          }
+          lastCharacter = '#';
+        }
+        if (grid[r][c] === '.' && lastCharacter === '#') {
+          inboundsR = r;
+          inboundsC = c;
+          break;
         }
       }
     }
-    grid[r] = row;
   }
-  
-  for (let row of grid) {
-  	console.log(row);
-  }
-  
+
+  // for (let row of grid) {
+  //   console.log(row);
+  // }
+
+  console.log(inboundsR, inboundsC);
+  grid[inboundsR] = updateCharacter(grid[inboundsR], inboundsC, '#');
+  grid = checkUp(grid, inboundsR, inboundsC);
+  grid = checkRight(grid, inboundsR, inboundsC);
+  grid = checkDown(grid, inboundsR, inboundsC);
+  grid = checkLeft(grid, inboundsR, inboundsC);
+
+  // for (let row of grid) {
+  //   console.log(row);
+  // }
+
   let total = 0;
   for (let r = 0; r < grid.length; r++) {
-  	for (let c = 0; c < grid[r].length; c++) {
-    	total += (grid[r][c] === '#' ? 1 : 0);
+    for (let c = 0; c < grid[r].length; c++) {
+      total += (grid[r][c] === '#' ? 1 : 0);
     }
   }
   return total;
 };
 
-console.log('Answer - Part 1 - Input 1');
-console.log(test1(input1));
+//console.log('Answer - Part 1 - Input 1');
+//console.log(test1(input1));
 // 62
 //console.log('Answer - Part 1 - Input 2');
 //console.log(test1(input2));
+// 49897
+
+const test2 = (input) => {
+  let points = [];
+  let currentR = 0;
+  let currentC = 0;
+
+  const shoelace = (p1, p2) => {
+    return (p1[0] * p2[1]) - (p1[1] * p2[0]);
+  };
+
+  for (let step of input) {
+    step = step.split('(#')[1].split(')')[0];
+    let distance = parseInt(step.slice(0, 5), 16);
+    let direction = parseInt(step[step.length - 1]);
+    
+    // 6th dight - 0 means R, 1 means D, 2 means L, and 3 means U.
+    switch (direction) {
+      case 3:
+        currentR -= distance;
+        break;
+      case 0:
+        currentC += distance;
+        break;
+      case 1:
+        currentR += distance;
+        break;
+      case 2:
+        currentC -= distance;
+        break;
+    }
+    points.push([currentR, currentC]);
+  }
+
+  // let minR = 9999;
+  // let minC = 9999;
+  // for (let point of points) {
+  //   let [r, c] = point;
+  //   minR = Math.min(minR, r);
+  //   minC = Math.min(minC, c);
+  // }
+  // console.log(minR, minC);
+
+  let total = 0;
+  for (let p = 1; p < points.length; p++) {
+    total += shoelace(points[p - 1], points[p]);
+  }
+  total += shoelace(points[points.length - 1], points[0]);
+  total /= 2;
+  total = Math.abs(total);
+
+  console.log(points.length);
+  for (let p = 1; p < points.length; p++) {
+    let delta = Math.abs(points[p - 1][0] - points[p][0]) + Math.abs(points[p - 1][1] - points[p][1]);
+    total += delta * 0.5;
+    total += 0.75;
+  }
+
+  return total;
+}
+
+console.log('Answer - Part 2 - Input 1');
+console.log(test2(input1));
+// 952408144115
+//console.log('Answer - Part 2 - Input 2');
+//console.log(test2(input2));
 // 
