@@ -1244,37 +1244,8 @@ const input2 = [
     '3,5,179~3,6,179',
 ];
 
-const moveDown = (brick, bricks) => {
-    for (let cube of brick.cubes) {
-        if (cube.z <= 1) {
-            return null;
-        }
-        if (bricks.some((b) => b.name !== brick.name && b.cubes.some((c) => c.x === cube.x && c.y === cube.y && c.z === cube.z - 1))) {
-            return null;
-        }
-    }
-    return { ...brick, cubes: brick.cubes.map((c) => ({ ...c, z: c.z - 1 })) };
-};
-
-const settleBricks = (bricks) => {
-    let settled = false;
-    while (!settled) {
-        settled = true;
-        for (let b = 0; b < bricks.length; b++) {
-            let brick = bricks[b];
-            let newBrick = moveDown(brick, bricks);
-            if (newBrick) {
-                settled = false;
-                bricks[b] = newBrick;
-            }
-        }
-    }
-    return bricks;
-};
-
-const test1 = (input) => {
-    // let grid = buildGrid(3, 3, 10);
-    let bricks = input.map((brick, index) => {
+const processBricks = (input) => {
+    return input.map((brick, index) => {
         let [p1, p2] = brick.split('~');
         let [x1, y1, z1] = p1.split(',').map((n) => parseInt(n));
         let [x2, y2, z2] = p2.split(',').map((n) => parseInt(n));
@@ -1308,13 +1279,48 @@ const test1 = (input) => {
             name: index,
         };
     });
+};
+
+const moveDown = (brick, bricks) => {
+    for (let cube of brick.cubes) {
+        if (cube.z <= 1) {
+            return null;
+        }
+        if (bricks.some((b) => b.name !== brick.name && b.cubes.some((c) => c.x === cube.x && c.y === cube.y && c.z === cube.z - 1))) {
+            return null;
+        }
+    }
+    return { ...brick, cubes: brick.cubes.map((c) => ({ ...c, z: c.z - 1 })) };
+};
+
+const settleBricks = (bricks) => {
+    let settled = false;
+    let chain = new Set();
+    while (!settled) {
+        settled = true;
+        for (let b = 0; b < bricks.length; b++) {
+            let brick = bricks[b];
+            let newBrick = moveDown(brick, bricks);
+            if (newBrick) {
+                chain.add(brick.name);
+                settled = false;
+                bricks[b] = newBrick;
+            }
+        }
+    }
+    return [ bricks, chain ];
+};
+
+const test1 = (input) => {
+    // let grid = buildGrid(3, 3, 10);
+    let bricks = processBricks(input);
 
     // for (let brick of bricks) {
     //     console.log(brick.name, brick.cubes);
     // }
     // console.log('------------------');
 
-    bricks = settleBricks(bricks);
+    let [settledBricks] = settleBricks(bricks);
 
     // for (let brick of bricks) {
     //     console.log(brick.name, brick.cubes);
@@ -1322,7 +1328,7 @@ const test1 = (input) => {
 
     let total = 0; 
 
-    for (let brick of bricks) {
+    for (let brick of settledBricks) {
         // Determine whether brick is the sole brick supporting any brick 1 level above it
         // If not add one to the total
         let soleSupport = false;
@@ -1356,12 +1362,24 @@ console.log(test1(input2));
 // 398
 
 const test2 = (input) => {
+    let bricks = processBricks(input);
+    let [ settledBricks ] = settleBricks(bricks);
 
+    let total = 0;
+    for (let b = 0; b < settledBricks.length; b++) {
+        let chainBricks = [...settledBricks];
+        chainBricks.splice(b, 1);
+        let [ _, chain ] = settleBricks(chainBricks);
+        // console.log(`Brick ${b} results in a chain of ${chain.size} bricks falling`);
+        total += chain.size;
+    }
+
+    return total;
 }
 
-//console.log('Answer - Part 2 - Input 1');
-//console.log(test2(input1));
-// 
-//console.log('Answer - Part 2 - Input 2');
-//console.log(test2(input2));
-// 
+console.log('Answer - Part 2 - Input 1');
+console.log(test2(input1));
+// 7
+console.log('Answer - Part 2 - Input 2');
+console.log(test2(input2));
+// 70727
