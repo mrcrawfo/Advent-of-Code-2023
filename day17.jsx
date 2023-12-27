@@ -158,94 +158,56 @@ const input2 = [
   '423126354124653331672162233413635177574771624528322686824883233468774665567775866376682464873886553453552265645627675251266551441231365256263',
 ];
 
-const arrayCompare = (a, b) => {
-  return a.length === b.length && a.every((number, index) => number === b[index]);
+const solveGrid = (input, minSteps, maxSteps) => {
+  const rows = input.length;
+  const columns = input[0].length;
+  const graph = {};
+  let result = Infinity;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < columns; x++) {
+      const vertical = graph[`vertical(${x},${y})`] = { heat: Infinity, neighbors: {}};
+      const horizontal = graph[`horizontal(${x},${y})`] = { heat: Infinity, neighbors: {} };
+      for (let i = minSteps; i <= maxSteps; i++) {
+        if (y + i >= 0 && y + i < rows) {
+          vertical.neighbors[`horizontal(${x},${y + i})`] = Array(i).fill(0).reduce((a, _, j) => a + parseInt(input[y + j + 1][x]), 0);
+        }
+        if (y - i >= 0 && y - i < rows) {
+          vertical.neighbors[`horizontal(${x},${y - i})`] = Array(i).fill(0).reduce((a, _, j) => a + parseInt(input[y - j - 1][x]), 0);
+        }
+        if (x + i >= 0 && x + i < columns) {
+          horizontal.neighbors[`vertical(${x + i},${y})`] = Array(i).fill(0).reduce((a, _, j) => a + parseInt(input[y][x + j + 1]), 0);
+        }
+        if (x - i >= 0 && x - i < columns) {
+          horizontal.neighbors[`vertical(${x - i},${y})`] = Array(i).fill(0).reduce((a, _, j) => a + parseInt(input[y][x - j - 1]), 0);
+        }
+      }
+    }
+  }
+
+  const startingNeighbors = { ...graph["horizontal(0,0)"].neighbors, ...graph["vertical(0,0)"].neighbors };
+  for (const startingNeighbor of Object.keys(startingNeighbors)) {
+    walk(startingNeighbor, parseInt(startingNeighbors[startingNeighbor]));
+  }
+
+  function walk(neighbor, heat) {
+    if (heat >= Math.min(graph[neighbor].heat, result)) return;
+    if (neighbor.split("l")[1] == `(${columns - 1},${rows - 1})`) {
+      result = heat;
+      return result;
+    }
+    graph[neighbor].heat = heat;
+    const neighbors = Object.keys(graph[neighbor].neighbors);
+    for (const key of neighbors) {
+      walk(key, heat + parseInt(graph[neighbor].neighbors[key]));
+    }
+  };
+
+  return result;
 };
 
 const test1 = (input) => {
-  let startR = 0;
-  let startC = 0;
-  let endR = input.length - 1;
-  let endC = input[0].length - 1;
-
-  let minimalHeatLoss = [];
-  for (let r = 0; r < input.length; r++) {
-    let heatLossRow = [];
-    for (let c = 0; c < input[r].length; c++) {
-      if (r === startR && c === startC) {
-        heatLossRow.push(0);
-      } else {
-        heatLossRow.push(9999);
-      }
-    }
-    minimalHeatLoss.push(heatLossRow);
-  }
-
-  let activeRoutes = [{ r: startR, c: startC, heatLoss: 0, path: [], steps: [{ r: startR, c: startC }] }];
-  let iter = 0;
-
-  while (activeRoutes.length > 0 && iter < 1000) {
-    let nextRoutes = []
-    //let nextRoutesData = {};
-    console.log(iter, activeRoutes.length);
-    for (let route of activeRoutes) {
-      //up
-      if (route.r > 0 && route.path.slice(-1)[0] != 'down' && (route.path.length < 3 || (route.path.length >= 3 && !route.path.every((dir) => dir === 'up')))) {
-        if (!route.steps[`r${route.r - 1}c${route.c}`]) {
-          if (minimalHeatLoss[route.r - 1][route.c] >= route.heatLoss - 32 + input[route.r - 1][route.c] * 4) {
-            minimalHeatLoss[route.r - 1][route.c] = Math.min(minimalHeatLoss[route.r - 1][route.c], route.heatLoss + parseInt(input[route.r - 1][route.c]));
-            //if (!nextRoutesData[`r${route.r - 1}c${route.c}h${route.heatLoss + parseInt(input[route.r - 1][route.c])}`]) {
-            //  nextRoutesData[`r${route.r - 1}c${route.c}h${route.heatLoss + parseInt(input[route.r - 1][route.c])}`] = true;
-              nextRoutes.push({ r: route.r - 1, c: route.c, heatLoss: route.heatLoss + parseInt(input[route.r - 1][route.c]), path: [...route.path.slice(-2), 'up'], steps: { ...route.steps, [`r${route.r - 1}c${route.c}`]: true } });
-            //}
-          }
-        }
-      }
-      //right
-      if (route.c < input[0].length - 1 && route.path.slice(-1)[0] != 'left' && (route.path.length < 3 || (route.path.length >= 3 && !route.path.every((dir) => dir === 'right')))) {
-        if (!route.steps[`r${route.r}c${route.c + 1}`]) {
-          if (minimalHeatLoss[route.r][route.c + 1] >= route.heatLoss - 32 + input[route.r][route.c + 1] * 4) {
-            minimalHeatLoss[route.r][route.c + 1] = Math.min(minimalHeatLoss[route.r][route.c + 1], route.heatLoss + parseInt(input[route.r][route.c + 1]));
-            //if (!nextRoutesData[`r${route.r}c${route.c + 1}h${route.heatLoss + parseInt(input[route.r][route.c + 1])}`]) {
-            //  nextRoutesData[`r${route.r}c${route.c + 1}h${route.heatLoss + parseInt(input[route.r][route.c + 1])}`] = true;
-              nextRoutes.push({ r: route.r, c: route.c + 1, heatLoss: route.heatLoss + parseInt(input[route.r][route.c + 1]), path: [...route.path.slice(-2), 'right'], steps: { ...route.steps, [`r${route.r}c${route.c + 1}`]: true } });
-            //}
-          }
-        }
-      }
-      //down
-      if (route.r < input.length - 1 && route.path.slice(-1)[0] != 'up' && (route.path.length < 3 || (route.path.length >= 3 && !route.path.every((dir) => dir === 'down')))) {
-        if (!route.steps[`r${route.r + 1}c${route.c}`]) {
-          if (minimalHeatLoss[route.r + 1][route.c] >= route.heatLoss - 32 + input[route.r + 1][route.c] * 4) {
-            minimalHeatLoss[route.r + 1][route.c] = Math.min(minimalHeatLoss[route.r + 1][route.c], route.heatLoss + parseInt(input[route.r + 1][route.c]));
-            //if (!nextRoutesData[`r${route.r + 1}c${route.c}h${route.heatLoss + parseInt(input[route.r + 1][route.c])}`]) {
-            //  nextRoutesData[`r${route.r + 1}c${route.c}h${route.heatLoss + parseInt(input[route.r + 1][route.c])}`] = true;
-              nextRoutes.push({ r: route.r + 1, c: route.c, heatLoss: route.heatLoss + parseInt(input[route.r + 1][route.c]), path: [...route.path.slice(-2), 'down'], steps: { ...route.steps, [`r${route.r + 1}c${route.c}`]: true } });
-            //}
-          }
-        }
-      }
-      //left
-      if (route.c > 0 && route.path.slice(-1)[0] != 'right' && (route.path.length < 3 || (route.path.length >= 3 && !route.path.every((dir) => dir === 'left')))) {
-        if (!route.steps[`r${route.r}c${route.c - 1}`]) {
-          if (minimalHeatLoss[route.r][route.c - 1] >= route.heatLoss - 32 + input[route.r][route.c - 1] * 4) {
-            minimalHeatLoss[route.r][route.c - 1] = Math.min(minimalHeatLoss[route.r][route.c - 1], route.heatLoss + parseInt(input[route.r][route.c - 1]));
-            //if (!nextRoutesData[`r${route.r}c${route.c - 1}h${route.heatLoss + parseInt(input[route.r][route.c - 1])}`]) {
-            //  nextRoutesData[`r${route.r}c${route.c - 1}h${route.heatLoss + parseInt(input[route.r][route.c - 1])}`] = true;
-              nextRoutes.push({ r: route.r, c: route.c - 1, heatLoss: route.heatLoss + parseInt(input[route.r][route.c - 1]), path: [...route.path.slice(-2), 'left'], steps: { ...route.steps, [`r${route.r}c${route.c - 1}`]: true } });
-            //}
-          }
-        }
-      }
-    }
-    if (nextRoutes.length > 100000) {
-      nextRoutes = nextRoutes.sort((a, b) => a.heatLoss - b.heatLoss).slice(0, 25000);
-    }
-    activeRoutes = [...nextRoutes];
-    iter++;
-  }
-
-  return minimalHeatLoss[endR][endC];
+  return solveGrid(input, 1, 3);
 };
 
 console.log('Answer - Part 1 - Input 1');
@@ -253,17 +215,15 @@ console.log(test1(input1));
 // 102
 console.log('Answer - Part 1 - Input 2');
 console.log(test1(input2));
-// 1203 (too high)
-// 1150 (too high)
-// 1143 (too high)
+// 1128
 
 const test2 = (input) => {
+  return solveGrid(input, 4, 10);
+};
 
-}
-
-//console.log('Answer - Part 2 - Input 1');
-//console.log(test2(input1));
-// 
-//console.log('Answer - Part 2 - Input 2');
-//console.log(test2(input2));
-// 
+console.log('Answer - Part 2 - Input 1');
+console.log(test2(input1));
+// 94
+console.log('Answer - Part 2 - Input 2');
+console.log(test2(input2));
+// 1268
